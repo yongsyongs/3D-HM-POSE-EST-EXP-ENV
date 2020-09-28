@@ -1,13 +1,14 @@
 from collections.abc import Sequence
 import numpy as np
 import copy
+import yaml
 
 from common.Model import temporal_conv, non_local, lstm
 from common.signal_processing import *
 from common.dataset import H36MDataset
 
 dataset_dict = {
-    'h36m': H36MDataset
+    'h36m': H36MDataset,
     'None': None
 }
 
@@ -51,15 +52,25 @@ class Config():
         self.padding = padding
 
     @staticmethod
-    def from_yaml(self, yaml):
+    def from_yaml(self, yaml_data):
         args = {
-            **yaml['HyperParameters'],
-            **yaml['Process'],
-            **{k:v for k, v in yaml['Dataset'].items() if k not in ['name', 'Generator']},
-            **{k:v for k, v in yaml['Dataset']['Generator'].items() if k != 'preprocessor'},
-            'dataset': yaml['Dataset']['name'],
-            'preprocessor': yaml['Dataset']['Generator']['preprocessor']['name'],
-            'preprocessor_parameter': yaml['Dataset']['Generator']['preprocessor']['parameter'],
+            **yaml_data['HyperParameters'],
+            **yaml_data['Process'],
+            **{k:v for k, v in yaml_data['Dataset'].items() if k not in ['name', 'Generator']},
+            **{k:v for k, v in yaml_data['Dataset']['Generator'].items() if k != 'preprocessor'},
+            'dataset': yaml_data['Dataset']['name'],
+            'preprocessor': yaml_data['Dataset']['Generator']['preprocessor']['name'],
+            'preprocessor_parameter': yaml_data['Dataset']['Generator']['preprocessor']['parameter'],
         }
         
         return Config(**args)
+
+
+def get_configs():
+    f = open('config.yaml')
+    raw_cfg = yaml.load(f, Loader=yaml.FullLoader)
+    f.close()
+
+
+if __name__ == '__main__':
+    get_configs()
