@@ -43,8 +43,17 @@ class Config():
         self.dataset = dataset
 
         args['cuda'] = self.cuda
-        # batch_size, length, chunked, keypoint, normalized, padding, receptive_field
+        args['preprocessor'] = self.preprocessor_dict[args['preprocessor']](**args['preprocessor_args'])
+        # batch_size, length, chunked, keypoint, normalized, padding, receptive_field, preprocessor
         self.dataset_args = self._get_args_from_mvarg(args)
+
+    def set_model_cfgs(self, modules, args):
+        assert len(modules) == len(args)
+        assert isinstance(args, dict)
+
+        modules = [self.module_dict[key] for key in modules]
+        module_args = [self._get_args_from_mvarg(arg) for arg in args]
+        self.modules = [module(module_arg) for module, module_arg in zip(modules, module_args)]
 
     def _get_args_from_mvarg(self, args):
         grid_args = { k: v.args if isinstance(v, mvargs) else [v] for k, v in args.items() }
