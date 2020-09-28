@@ -12,5 +12,6 @@ class Pipeline():
     def set_pred(self, func):
         self.pred = func
 
+
     def __call__(self, x):
         return self.pred(self, x)
