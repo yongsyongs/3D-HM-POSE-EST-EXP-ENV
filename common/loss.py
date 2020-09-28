@@ -64,9 +64,9 @@ def n_mpjpe(pred, target):
 def mpjve(pred, target, time_axis=0):
     assert pred.shape == target.shape
 
-    diff_func, mean_func, norm_func = torch_diff, wrap_torch_axis(torch.mean, ()), wrap_torch_axis(torch.norm, None) \
-        if type(pred) is torch.Tensor else np.diff, np.mean, np.linalg.norm
-    
+
+    diff_func, mean_func, norm_func = [torch_diff, wrap_torch_axis(torch.mean, ()), wrap_torch_axis(torch.norm, None)] \
+        if isinstance(pred, torch.Tensor) else [np.diff, np.mean, np.linalg.norm]
     velocity_pred = diff_func(pred, axis=time_axis)
     velocity_target = diff_func(target, axis=time_axis)
     
@@ -76,8 +76,8 @@ def mpjve(pred, target, time_axis=0):
 def mpjae(pred, target, time_axis=0):
     assert pred.shape == target.shape
     
-    diff_func, mean_func, norm_func = torch_diff, wrap_torch_axis(torch.mean, ()), wrap_torch_axis(torch.norm, None) \
-        if type(pred) is torch.Tensor else np.diff, np.mean, np.linalg.norm
+    diff_func, mean_func, norm_func = [torch_diff, wrap_torch_axis(torch.mean, ()), wrap_torch_axis(torch.norm, None)] \
+        if isinstance(pred, torch.Tensor) is torch.Tensor else [np.diff, np.mean, np.linalg.norm]
 
 
     acceleration_pred = diff_func(diff_func(pred, axis=time_axis), axis=time_axis)
@@ -86,7 +86,7 @@ def mpjae(pred, target, time_axis=0):
     return mean_func(norm_func(acceleration_pred - acceleration_target, axis=-1))
 
 def wrap_torch_axis(func, axis_default):
-    def f(*args, **kwargs, axis=axis_default):
+    def f(*args, axis=axis_default, **kwargs):
         return func(*args, **kwargs, dim=axis)
     return f
     
