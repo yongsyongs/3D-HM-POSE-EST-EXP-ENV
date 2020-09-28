@@ -1,3 +1,6 @@
+Variable:
+  - Dataset/Generator/preprocessor/parameter
+
 ModelStructure: 
   - Model1:
     - TCN:
@@ -32,6 +35,7 @@ Dataset:
     batch_size: 1024
     receptive_field: 243
     padding: True
+    length: 1
 
 HyperParameters:
   epochs: 100
