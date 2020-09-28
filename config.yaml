@@ -1,22 +1,8 @@
 Variable:
   - Dataset/Generator/preprocessor/parameter
 
-ModelStructure: 
-  - Model1:
-    - TCN:
-      channel: 1024
-      num_joints: 17
-
-    - NLB:
-      channel: 51
-
-  # - Model2:
-  #   - GCN:
-  #     channel: 128
-  #     skeleton_type: h36m
-    
-  #   - RNN:
-  #     size: 51
+Pipeline:
+  - tcn1024_nlb51
 
 Dataset:
   name: h36m
