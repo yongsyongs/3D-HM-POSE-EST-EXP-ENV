@@ -1,12 +1,23 @@
+from abc import *
+
 import numpy as np
 import torch
 import random
 
-class H36MDataset():
+class Dataset(metaclass=ABCMeta):
+    def __init__(self):
+        self.num_joints = 0
+
+    def set_num_joints(self, n):
+        self.num_joints = n
+
+class H36MDataset(Dataset):
     def __init__(self, cfg):
         self.cfg = cfg
         self.subjects = {'train': cfg.train_subjects.replace(' ', '').split(','), 'test': cfg.test_subjects.replace(' ', '').split(',')}
         self.data = np.load(cfg.filepath, allow_pickle=True).tolist()
+
+        self.set_num_joints(self.data['S1']['Eating']['3d']['gt'].shape[-2])
 
     def get_generator(self, cfg, train=False):
         assert self.cfg.keypoint in ['detectron', 'cpn', 'gt']
