@@ -1,7 +1,5 @@
-from common.dataset import H36MDataset
-from common.signal_processing import ExponentialMovingAverage
+from common.config import get_configs
+from common.Experiments import train
 
-dataset = H36MDataset()
-dataset.get_generator('cpn', padding=True, length=1, chunked=True, receptive_field=243, preprocessor=ExponentialMovingAverage(0.9))
+cfgs = get_configs()
 
-# lr reset by epoch w/ read() func
