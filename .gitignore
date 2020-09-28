@@ -10,3 +10,4 @@ data/h36m_cpn+detectron+gt_2d_normalized+unnormlized_gt_3d.npy
 common/__pycache__/dataset.cpython-37.pyc
 common/__pycache__/config.cpython-37.pyc
 *.pyc
+.idea/workspace.xml
