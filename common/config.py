@@ -3,7 +3,7 @@ import numpy as np
 import copy
 import yaml
 
-from common.Model import temporal_conv, non_local, lstm
+from common.nets import temporal_conv, non_local, lstm
 from common.signal_processing import *
 from common.dataset import H36MDataset
 
@@ -23,9 +23,11 @@ class Config():
         self, epochs=0, lr=0, lr_decay=[0], lr_decay_step=[0], amp=False, cuda=False, 
         dataset='', filepath='', train_subjects='', test_subjects='', preprocessor='', 
         preprocessor_parameter=0, keypoint='', chunked=False, normalized=False, 
-        batch_size=0, receptive_field=0, padding=False, length=0, yaml=None,
+        batch_size=0, receptive_field=0, padding=False, length=0, yaml=None, pipeline=''
     ):
         self.yaml = yaml
+
+        self.pipeline = pipeline
 
         # hyper params
         self.epochs = epochs
@@ -34,8 +36,8 @@ class Config():
         self.lr_decay_step = lr_decay_step
 
         # learning process
-        self.use_amp = amp
-        self.use_cuda = cuda
+        self.amp = amp
+        self.cuda = cuda
 
         # dataset
         self.dataset = dataset_dict[dataset]
@@ -57,6 +59,7 @@ class Config():
     def from_yaml(yaml_data):
         args = {
             'yaml': yaml_data,
+            'pipeline': yaml_data['Pipeline'][0],
             **yaml_data['HyperParameters'],
             **yaml_data['Process'],
             **{k:v for k, v in yaml_data['Dataset'].items() if k not in ['name', 'Generator']},
