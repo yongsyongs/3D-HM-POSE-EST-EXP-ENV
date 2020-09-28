@@ -11,7 +11,10 @@ class H36MDataset():
         self.subjects = {'train': train_subjects.replace(' ', '').split(','), 'test': test_subjects.replace(' ', '').split(',')}
         self.data = np.load(filepath, allow_pickle=True).tolist()
 
-    def get_generator(self, keypoint, normalized=True, batch_size=32, length=1, padding=None, chunked=False, receptive_field=None, train=False, cuda=True):
+    def get_generator(
+            self, keypoint, normalized=True, batch_size=32, length=1, padding=None,
+            chunked=False, receptive_field=None, train=False, cuda=True, preprocessor=None
+    ):
         assert keypoint in ['detectron', 'cpn', 'gt']
 
         if chunked:
@@ -48,8 +51,8 @@ class H36MDataset():
                 cam_num = pos2d.shape[0]
 
                 for cam in range(cam_num):
-                    padded2d = self.insert_pad(pos2d[cam], pad)
-                    padded3d = self.insert_pad(pos3d[cam], pad)
+                    padded2d = self.insert_pad(pos2d[cam] if preprocessor is None else preprocessor(pos2d[cam]), pad)
+                    padded3d = self.insert_pad(pos3d[cam] if preprocessor is None else preprocessor(pos3d[cam]), pad)
 
                     slice_offset = sum([arr.shape[0] for arr in valid_data_array])
 
