@@ -1,5 +1,7 @@
 from collections.abc import Sequence
 import numpy as np
+import copy
+
 from common.Model import temporal_conv, non_local, lstm
 from common.signal_processing import *
 
@@ -51,10 +53,29 @@ class Config():
         assert len(modules) == len(args)
         assert isinstance(args, dict)
 
+        _args = copy.deepcopy(args)
+
+        # (1000, 5) => mvlen (2, 5, 50, 2, 1)
+        # if mv_exist:
+        #     mvargs_len = [len(mvarg.args) if isinstance(mvarg, mvargs) else 1 for mvarg in args]
+        #     opt_count = np.prod(mvargs_len)
+        #     opts = [[] for _ in range(len(mvargs_len))]
+        #     for i, arg_count in enumerate(mvargs_len):
+        #         chk_count = np.prod(mvargs_len[:i])
+        #         for _ in range(chk_count):
+        #             for j in range(arg_count):
+        #                 opts[i] += [copy.deepcopy(args[j]) for _ in range(opt_count // chk_count // arg_count)]
+        # else:
+        #     opts = [[arg] for arg in args]
+
+
+
+
         modules = [self.module_dict[key] for key in modules]
         module_args = [self._get_args_from_mvarg(arg) for arg in args]
         self.modules = [module(module_arg) for module, module_arg in zip(modules, module_args)]
 
+    # can use config for grid search with this method
     def _get_args_from_mvarg(self, args):
         grid_args = { k: v.args if isinstance(v, mvargs) else [v] for k, v in args.items() }
 
