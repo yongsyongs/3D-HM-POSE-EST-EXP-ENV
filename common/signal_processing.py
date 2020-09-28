@@ -3,9 +3,9 @@ import torch
 from common.loss import wrap_torch_axis
 
 class ExponentialMovingAverage():
-    def __init__(self, ratio):
+    def __init__(self, r):
         # this value is usually set to (1 - 2/(N + 1)
-        self.r = ratio
+        self.r = r
 
     def __call__(self, x):
         assert type(x) == torch.Tensor or type(x) == np.array
