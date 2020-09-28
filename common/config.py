@@ -70,7 +70,7 @@ def get_configs():
     f = open('config.yaml')
     raw_cfg = yaml.load(f, Loader=yaml.FullLoader)
     f.close()
-
+    
 
 if __name__ == '__main__':
     get_configs()
