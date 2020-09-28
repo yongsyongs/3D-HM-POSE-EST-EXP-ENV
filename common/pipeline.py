@@ -1,17 +1,13 @@
-class Pipeline():
-    def __init__(self, modules=[], pred_func=None):
-        self.modules = modules
+from abc import *
 
-        def pred(self, x):
-            for module in self.modules:
-                x = module(x)
-            return x
+class Pipeline(metaclass=ABCMeta):
+    @abstractmethod
+    def forward(self, x, y):
+        pass
 
-        self.pred = pred if pred_func is None else pred_func
+    @abstractmethod
+    def get_loss(self):
+        pass
 
-    def set_pred(self, func):
-        self.pred = func
-
-
-    def __call__(self, x):
-        return self.pred(self, x)
+    def __call__(self, *args, **kwargs):
+        return self.pred(*args, **kwargs)
