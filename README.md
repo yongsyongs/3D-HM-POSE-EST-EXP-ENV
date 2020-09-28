@@ -3,3 +3,9 @@
 
 
 This is my project to compare and experiment with serveral networks of papers. 
+
+
+dependencies:
+- numpy
+- pytorch
+- pyyaml
