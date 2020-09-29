@@ -4,11 +4,13 @@ import tqdm
 from torchsummary import summary
 from common.loss import mpjpe
 
-
 def train(cfg):
+    print('Load Dataset...', end='')
     dataset = cfg.dataset(cfg)
     train_generator = dataset.get_generator(train=True)
     test_generator = dataset.get_generator(train=False)
+    print('done')
+
     pipeline = __import__('common.pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(dataset.num_joints, cfg)
     optimizer = cfg.optimizer(pipeline.all_parameters(), lr=cfg.lr, amsgrad=cfg.amsgrad)
 

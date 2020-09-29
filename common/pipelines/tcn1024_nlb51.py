@@ -31,7 +31,7 @@ class pipeline(Pipeline):
         pred = self.tcn(x) # (N T J 3)
         pred = pred.view(pred.shape[:2] + (-1,)).permute(0, 2, 1) # (N C T)
         pred = self.nlb(pred) #(N C T)
-        pred = pred.premute(0, 2, 1).view(pred.shape[0], pred.shape[2], -1, 3) # (N T J 3)
+        pred = pred.permute(0, 2, 1).view(pred.shape[0], pred.shape[2], -1, 3) # (N T J 3)
 
         self.last_loss = mpjpe(pred, y)
         self.last_output = pred
