@@ -1,9 +1,17 @@
-import torch
 import time
+import os
+
+import torch
+import yaml
 from torchsummary import summary
-from common.loss import mpjpe
+
+from common.logger import Logger
 
 def train(cfg):
+    logger = Logger(cfg)
+    with open(os.path.join(cfg.result_path, 'config.yaml'), 'w') as f:
+        yaml.dump(cfg.yaml, f)
+
     print('Load Dataset...', end='')
     dataset = cfg.dataset(cfg)
     train_generator = dataset.get_chunked_generator(train=True) if cfg.chunked else dataset.get_unchunked_generator(train=True, shuffle=True)
@@ -18,6 +26,8 @@ def train(cfg):
 
     lr = cfg.lr
     for epoch in range(cfg.epochs):
+        log_dict = {'epoch': (epoch + 1)}
+        log_dict = {'lr': lr}
         times = []
         start_time = time.time()
         time_per_iter = 0
@@ -55,16 +65,21 @@ def train(cfg):
             for x_batch, y_batch in train_generator():
                 y_pred = pipeline(x_batch, y_batch)
                 losses.append(pipeline.get_loss().data)
+            train_loss = torch.mean(torch.stack(losses)).data
             print('epoch %d    iter %d    loss: %.2f    %.2fsec/iter    lr:%f\t\t\t'
-                  % ((epoch + 1), i + 1, torch.mean(torch.stack(losses)).data, sum(times) / len(times), lr))
+                  % ((epoch + 1), i + 1, train_loss, sum(times) / len(times), lr))
 
-            if (epoch + 1) % 5 == 0:
-                losses = []
-                for x_batch, y_batch in test_generator():
-                    y_pred = pipeline(x_batch, y_batch)
-                    losses.append(pipeline.get_loss().data)
-                print('test result - loss: %.2f' % torch.mean(torch.stack(losses)).data)
+            log_dict['train_loss'] = train_loss
 
+            losses = []
+            for x_batch, y_batch in test_generator():
+                y_pred = pipeline(x_batch, y_batch)
+                losses.append(pipeline.get_loss().data)
+            test_loss = torch.mean(torch.stack(losses)).data
+            print('test result - loss: %.2f' % test_loss)
+            log_dict['test_loss'] = test_loss
+
+        logger.log_epoch(log_dict)
         for _lr_decay, _lr_decay_step in zip(cfg.lr_decay, cfg.lr_decay_step):
             if (epoch + 1) % _lr_decay_step == 0:
                 lr *= _lr_decay
