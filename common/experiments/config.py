@@ -1,12 +1,8 @@
-from collections.abc import Sequence
-import numpy as np
-import torch
 import copy
 import yaml
 
-from common.nets import temporal_conv, non_local, lstm
 from common.signal_processing import *
-from common.dataset import H36MDataset
+from common.data.dataset import H36MDataset
 
 dataset_dict = {
     'h36m': H36MDataset,
