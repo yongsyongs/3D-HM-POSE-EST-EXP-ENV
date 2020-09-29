@@ -1,7 +1,7 @@
 from abc import *
+import torch.nn as nn
 
-class Pipeline(metaclass=ABCMeta):
-    @abstractmethod
+class Pipeline(nn.Module):
     def forward(self, x, y):
         pass
 
@@ -12,14 +12,3 @@ class Pipeline(metaclass=ABCMeta):
     @abstractmethod
     def all_parameters(self):
         pass
-
-    @abstractmethod
-    def train(self):
-        pass
-
-    @abstractmethod
-    def eval(self):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        return self.forward(*args, **kwargs)
