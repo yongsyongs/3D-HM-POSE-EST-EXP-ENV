@@ -19,14 +19,10 @@ class H36MDataset(Dataset):
 
         self.set_num_joints(self.data['S1']['Eating']['3d']['gt'].shape[-2])
 
-    def get_generator(self, train=False):
+    def get_chunked_generator(self, train=False):
         assert self.cfg.keypoint in ['detectron', 'cpn', 'gt']
-
-        if self.cfg.chunked:
-            assert self.cfg.receptive_field is not None
-            assert self.cfg.receptive_field % 2 == 1
-        else:
-            self.cfg.receptive_field = 0
+        assert self.cfg.receptive_field is not None
+        assert self.cfg.receptive_field % 2 == 1
 
         if self.cfg.padding is True:
             pad = self.cfg.receptive_field // 2
@@ -37,10 +33,59 @@ class H36MDataset(Dataset):
         else:
             raise Exception('Type of padding must be one of boolean, int, or None.')
 
-        as_is = lambda i: slice(i, i + self.cfg.length)
         sample_slice = lambda i: (
-            slice(i - self.cfg.receptive_field // 2, i + self.cfg.length + self.cfg.receptive_field // 2) if self.cfg.chunked else as_is(i),
-            as_is(i)
+            slice(i - self.cfg.receptive_field // 2, i + self.cfg.length + self.cfg.receptive_field // 2),
+            slice(i, i + self.cfg.length)
+        )
+
+        subs = self.subjects['train' if train else 'test']
+
+        valid_data_array = []
+        slices = []
+        for subject in subs:
+            for action in self.data[subject].keys():
+                pos2d = self.data[subject][action]['2d'][self.cfg.keypoint][
+                    'normalized' if self.cfg.normalized else 'unnormalized']
+                pos3d = self.data[subject][action]['3d']['gt']
+                assert pos2d.shape[:-1] == pos3d.shape[:-1]
+
+                cam_num = pos2d.shape[0]
+
+                for cam in range(cam_num):
+                    padded2d = self.insert_pad(
+                        pos2d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos2d[cam]), pad)
+                    padded3d = self.insert_pad(
+                        pos3d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos3d[cam]), pad)
+
+                    slice_offset = sum([arr.shape[0] for arr in valid_data_array])
+
+                    # since the length of the last sample is shorter, the frames of the last sample may be weighter more.
+                    # for the above reason, the last sample is ignored.
+                    slices += [
+                        sample_slice(slice_offset + self.cfg.receptive_field // 2 + idx * self.cfg.length)
+                        for idx in range((padded2d.shape[0] - self.cfg.receptive_field + 1) // self.cfg.length)
+                    ]
+                    valid_data_array.append(np.concatenate([padded2d, padded3d], axis=-1))
+
+        valid_data_array = torch.from_numpy(np.concatenate(valid_data_array, axis=0)).float()
+
+        def gen():
+            random.shuffle(slices)
+            for i in range(len(slices) // self.cfg.batch_size):
+                x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
+                y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
+                yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
+            x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
+            y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
+            yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
+
+        return gen
+    def get_unchunked_generator(self, train=False, shuffle=False):
+        assert self.cfg.keypoint in ['detectron', 'cpn', 'gt']
+
+        sample_slice = lambda i: (
+            slice(i - self.cfg.receptive_field // 2, i + self.cfg.length + self.cfg.receptive_field // 2),
+            slice(i, i + self.cfg.length)
         )
 
         subs = self.subjects['train' if train else 'test']
@@ -56,29 +101,23 @@ class H36MDataset(Dataset):
                 cam_num = pos2d.shape[0]
 
                 for cam in range(cam_num):
-                    padded2d = self.insert_pad(pos2d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos2d[cam]), pad)
-                    padded3d = self.insert_pad(pos3d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos3d[cam]), pad)
-
-                    slice_offset = sum([arr.shape[0] for arr in valid_data_array])
-
-                    # since the length of the last sample is shorter, the frames of the last sample may be weighter more.
-                    # for the above reason, the last sample is ignored.
-                    slices += [
-                        sample_slice(slice_offset + self.cfg.receptive_field // 2 + idx * self.cfg.length)
-                        for idx in range((padded2d.shape[0] - self.cfg.receptive_field + 1) // self.cfg.length)
-                    ]
-                    valid_data_array.append(np.concatenate([padded2d, padded3d], axis=-1))
+                    processed_2d = pos2d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos2d[cam])
+                    processed_3d = pos3d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos3d[cam])
+                    valid_data_array.append(np.concatenate([processed_2d, processed_3d], axis=-1))
 
         valid_data_array = torch.from_numpy(np.concatenate(valid_data_array, axis=0)).float()
-        
+
         def gen():
-            random.shuffle(slices)
+            if shuffle:
+                random.shuffle(slices)
             for i in range(len(slices) // self.cfg.batch_size):
-                x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
-                y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
+                batch = valid_data_array[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]
+                x_batch = batch[..., :2]
+                y_batch = batch[..., 2:]
                 yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
-            x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
-            y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
+            batch = valid_data_array[(i + 1) * self.cfg.batch_size:-1]
+            x_batch = batch[..., :2]
+            y_batch = batch[..., 2:]
             yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
 
         return gen
