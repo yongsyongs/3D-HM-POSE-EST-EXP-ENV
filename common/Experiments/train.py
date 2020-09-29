@@ -10,7 +10,7 @@ def train(cfg):
     test_generator = dataset.get_unchunked_generator(train=False)
     print('done')
 
-    pipeline = __import__('common.pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(dataset.num_joints, cfg)
+    pipeline = __import__('pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(dataset.num_joints, cfg)
     optimizer = cfg.optimizer(pipeline.parameters(), lr=cfg.lr, amsgrad=cfg.amsgrad)
 
     if cfg.amp:
