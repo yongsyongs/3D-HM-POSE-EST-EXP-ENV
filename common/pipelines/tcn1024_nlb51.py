@@ -7,6 +7,7 @@ from common.loss import mpjpe
 
 class pipeline(Pipeline):
     def __init__(self, num_joints, cfg):
+        super(pipeline, self).__init__()
         rf = cfg.receptive_field
         fw_cnt = 0
         while rf != 1:
@@ -39,18 +40,3 @@ class pipeline(Pipeline):
 
     def get_loss(self):
         return self.last_loss
-
-    def all_parameters(self):
-        all_params = []
-        all_params += self.tcn.parameters()
-        all_params += self.nlb.parameters()
-        return all_params
-
-
-    def train(self):
-        self.tcn.train()
-        self.nlb.train()
-
-    def eval(self):
-        self.tcn.eval()
-        self.nlb.eval()
