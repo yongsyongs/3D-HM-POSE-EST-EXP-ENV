@@ -19,14 +19,14 @@ class H36MDataset(Dataset):
 
         self.set_num_joints(self.data['S1']['Eating']['3d']['gt'].shape[-2])
 
-    def get_generator(self, cfg, train=False):
+    def get_generator(self, train=False):
         assert self.cfg.keypoint in ['detectron', 'cpn', 'gt']
 
-        if self.cfgchunked:
+        if self.cfg.chunked:
             assert self.cfg.receptive_field is not None
             assert self.cfg.receptive_field % 2 == 1
         else:
-            receptive_field = 0
+            self.cfg.receptive_field = 0
 
         if self.cfg.padding is True:
             pad = self.cfg.receptive_field // 2
@@ -39,7 +39,7 @@ class H36MDataset(Dataset):
 
         as_is = lambda i: slice(i, i + self.cfg.length)
         sample_slice = lambda i: (
-            slice(i - receptive_field // 2, i + self.cfg.length + receptive_field // 2) if self.cfg.chunked else as_is(i),
+            slice(i - self.cfg.receptive_field // 2, i + self.cfg.length + self.cfg.receptive_field // 2) if self.cfg.chunked else as_is(i),
             as_is(i)
         )
 
@@ -63,20 +63,23 @@ class H36MDataset(Dataset):
 
                     # since the length of the last sample is shorter, the frames of the last sample may be weighter more.
                     # for the above reason, the last sample is ignored.
-                    slices += [sample_slice(slice_offset + receptive_field // 2 + idx * self.cfg.length) for idx in range((padded2d.shape[0] - receptive_field + 1) // self.cfg.length)]
+                    slices += [
+                        sample_slice(slice_offset + self.cfg.receptive_field // 2 + idx * self.cfg.length)
+                        for idx in range((padded2d.shape[0] - self.cfg.receptive_field + 1) // self.cfg.length)
+                    ]
                     valid_data_array.append(np.concatenate([padded2d, padded3d], axis=-1))
 
-        valid_data_array = torch.from_numpy(np.concatenate(valid_data_array, axis=0))
+        valid_data_array = torch.from_numpy(np.concatenate(valid_data_array, axis=0)).float()
         
         def gen():
             random.shuffle(slices)
             for i in range(len(slices) // self.cfg.batch_size):
                 x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
                 y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
-                yield x_batch.cuda(), y_batch.cuda() if self.cfg.cuda else x_batch, y_batch
+                yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
             x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
             y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
-            yield x_batch.cuda(), y_batch.cuda() if self.cfg.cuda else x_batch, y_batch
+            yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
 
         return gen
 

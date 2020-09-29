@@ -39,3 +39,18 @@ class pipeline(Pipeline):
 
     def get_loss(self):
         return self.last_loss
+
+    def all_parameters(self):
+        all_params = []
+        all_params += self.tcn.parameters()
+        all_params += self.nlb.parameters()
+        return all_params
+
+
+    def train(self):
+        self.tcn.train()
+        self.nlb.train()
+
+    def eval(self):
+        self.tcn.eval()
+        self.nlb.eval()

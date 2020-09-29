@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 import numpy as np
+import torch
 import copy
 import yaml
 
@@ -18,12 +19,18 @@ preprocessor_dict = {
     'None': None
 }
 
+optimizer_dict = {
+    'adam': torch.optim.Adam,
+    'sgd': torch.optim.SGD
+}
+
 class Config():
     def __init__(
         self, epochs=0, lr=0, lr_decay=[0], lr_decay_step=[0], amp=False, cuda=False, 
         dataset='', filepath='', train_subjects='', test_subjects='', preprocessor='', 
         preprocessor_parameter=0, keypoint='', chunked=False, normalized=False, 
-        batch_size=0, receptive_field=0, padding=False, length=0, yaml=None, pipeline=''
+        batch_size=0, receptive_field=0, padding=False, length=0, yaml=None, pipeline='',
+        optimizer='', amsgrad=False
     ):
         self.yaml = yaml
 
@@ -35,9 +42,13 @@ class Config():
         self.lr_decay = lr_decay
         self.lr_decay_step = lr_decay_step
 
+        self.optimizer = optimizer_dict[optimizer]
+        self.amsgrad = amsgrad
+
         # learning process
         self.amp = amp
-        self.cuda = cuda
+        self.cuda = True if amp else cuda
+
 
         # dataset
         self.dataset = dataset_dict[dataset]
@@ -61,12 +72,10 @@ class Config():
             'yaml': yaml_data,
             'pipeline': yaml_data['Pipeline'][0],
             **yaml_data['HyperParameters'],
+            **yaml_data['Optimizer'],
             **yaml_data['Process'],
-            **{k:v for k, v in yaml_data['Dataset'].items() if k not in ['name', 'Generator']},
-            **{k:v for k, v in yaml_data['Dataset']['Generator'].items() if k != 'preprocessor'},
-            'dataset': yaml_data['Dataset']['name'],
-            'preprocessor': yaml_data['Dataset']['Generator']['preprocessor']['name'],
-            'preprocessor_parameter': yaml_data['Dataset']['Generator']['preprocessor']['parameter'],
+            **yaml_data['Dataset']['Generator'],
+            **{k:v for k, v in yaml_data['Dataset'].items() if k != 'Generator'},
         }
         
         return Config(**args)

@@ -1,33 +1,36 @@
 Variable:
-  - Dataset/Generator/preprocessor/parameter
+  - Dataset/Generator/preprocessor_parameter
 
 Pipeline:
   - tcn1024_nlb51
 
 Dataset:
-  name: h36m
+  dataset: h36m
   filepath: data/h36m_cpn+detectron+gt_2d_normalized+unnormlized_gt_3d.npy
   train_subjects: "S1,S5,S6,S7,S8"
   test_subjects: "S9,S11"
   
   Generator:
-    preprocessor:
-      name: EMA
-      parameter: [0.5, 0.75, 0.9, 0.95]
+    preprocessor: EMA
+    preprocessor_parameter: [0.5, 0.75, 0.9, 0.95]
     
     keypoint: gt
     chunked: True
     normalized: True
-    batch_size: 1024
+    batch_size: 128
     receptive_field: 243
     padding: True
-    length: 1
+    length: 10
 
 HyperParameters:
   epochs: 100
   lr: 0.01
   lr_decay: [0.99, 0.9, 0.8]
   lr_decay_step: [1, 10, 50]
+
+Optimizer:
+  optimizer: adam
+  amsgrad: False
 
 Process:
   amp: True

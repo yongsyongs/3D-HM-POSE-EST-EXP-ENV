@@ -8,8 +8,6 @@ class ExponentialMovingAverage():
         self.r = r
 
     def __call__(self, x):
-        assert type(x) == torch.Tensor or type(x) == np.array
-
         if self.r == 1:
             return x
 
@@ -25,8 +23,6 @@ class MovingAverage():
         self.ws = window_size
 
     def __call__(self, x):
-        assert type(x) == torch.Tensor or type(x) == np.array
-
         if self.ws == 0:
             return x
 
