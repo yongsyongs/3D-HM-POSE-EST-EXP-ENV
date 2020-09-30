@@ -28,7 +28,7 @@ def train(cfg):
     lr = cfg.lr
     for epoch in range(cfg.epochs):
         log_dict = {'epoch': (epoch + 1)}
-        log_dict = {'lr': lr}
+        log_dict['lr'] = lr
         times = []
         start_time = time.time()
         time_per_iter = 0
