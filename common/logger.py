@@ -12,6 +12,5 @@ class Logger:
 
     def log_epoch(self, data):
         f = open(os.path.join(self.path), f"epoch_{six_digit(data['epoch'])}.data", 'w')
-        keys = ','.join(data.keys())
         f.write(f"{','.join([x for x in data.keys() if x != 'epoch'])} {','.join([v for k, v in data.items() if k != 'epoch'])}")
         f.close()

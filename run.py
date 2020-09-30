@@ -26,3 +26,6 @@ for i, cfg in enumerate(cfgs):
     os.makedirs(rst_path, exist_ok=False)
     cfg.result_path = rst_path
     train(cfg)
+
+print('=' * 100)
+print('Done all experiment.')
