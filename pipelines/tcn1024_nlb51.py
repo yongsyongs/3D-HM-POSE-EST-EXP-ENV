@@ -26,7 +26,7 @@ class pipeline(Pipeline):
         self.last_output = 0
 
     def forward(self, x, y):
-        assert len(x.shape) == 4, 'input shape should be (N T J 2)'
+        assert len(x.shape) == 4, f'input shape should be (N T J 2), but got {x.shape}'
         assert x.shape[-1] == 2
 
         pred = self.tcn(x) # (N T J 3)
