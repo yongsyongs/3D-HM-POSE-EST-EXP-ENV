@@ -35,3 +35,4 @@ Optimizer:
 Process:
   amp: True
   cuda: True
+  dynamic_learning: True

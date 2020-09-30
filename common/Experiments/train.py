@@ -4,6 +4,7 @@ import os
 import torch
 import yaml
 from torchsummary import summary
+from inputimeout import inputimeout, TimeoutOccurred
 
 from common.logger import Logger
 
@@ -85,3 +86,10 @@ def train(cfg):
                 lr *= _lr_decay
                 for param_group in optimizer.param_groups:
                     param_group['lr'] *= _lr_decay
+
+        try:
+            lr = float(inputimeout(prompt='if you want reset lr, input the value:', timeout=10))
+            for param_group in optimizer.param_groups:
+                param_group['lr'] = lr
+        except:
+            pass

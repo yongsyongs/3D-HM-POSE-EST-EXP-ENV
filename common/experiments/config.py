@@ -26,7 +26,7 @@ class Config():
         dataset='', filepath='', train_subjects='', test_subjects='', preprocessor='', 
         preprocessor_parameter=0, keypoint='', chunked=False, normalized=False, 
         batch_size=0, receptive_field=0, padding=False, length=0, yaml=None, pipeline='',
-        optimizer='', amsgrad=False
+        optimizer='', amsgrad=False, dynamic_learning=False,
     ):
         self.yaml = yaml
 
@@ -44,6 +44,7 @@ class Config():
         # learning process
         self.amp = amp
         self.cuda = True if amp else cuda
+        self.dynamic_learning = dynamic_learning
 
 
         # dataset
