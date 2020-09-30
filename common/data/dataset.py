@@ -75,8 +75,8 @@ class H36MDataset(Dataset):
                 x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
                 y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[i * self.cfg.batch_size:(i + 1) * self.cfg.batch_size]])
                 yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
-            x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
-            y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[(i + 1) * self.cfg.batch_size:-1]])
+            x_batch = torch.stack([valid_data_array[slc[0], ..., :2] for slc in slices[(len(slices) // self.cfg.batch_size) * self.cfg.batch_size:-1]])
+            y_batch = torch.stack([valid_data_array[slc[1], ..., 2:] for slc in slices[(len(slices) // self.cfg.batch_size) * self.cfg.batch_size:-1]])
             yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
 
         return gen
@@ -115,7 +115,7 @@ class H36MDataset(Dataset):
                 x_batch = batch[..., :2]
                 y_batch = batch[..., 2:]
                 yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
-            batch = valid_data_array[(i + 1) * self.cfg.batch_size:-1]
+            batch = valid_data_array[(len(slices) // self.cfg.batch_size) * self.cfg.batch_size:-1]
             x_batch = batch[..., :2]
             y_batch = batch[..., 2:]
             yield (x_batch.cuda(), y_batch.cuda()) if self.cfg.cuda else (x_batch, y_batch)
