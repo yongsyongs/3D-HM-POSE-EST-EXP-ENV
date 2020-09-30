@@ -16,7 +16,7 @@ def train(cfg):
     print('Load Dataset...', end='')
     dataset = cfg.dataset(cfg)
     train_generator = dataset.get_chunked_generator(train=True) if cfg.chunked else dataset.get_unchunked_generator(train=True, shuffle=True)
-    test_generator = dataset.get_unchunked_generator(train=False)
+    test_generator = dataset.get_chunked_generator(train=False)
     print('done')
 
     pipeline = __import__('pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(dataset.num_joints, cfg)
