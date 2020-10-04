@@ -54,8 +54,7 @@ class H36MDataset(Dataset):
                 for cam in range(cam_num):
                     padded2d = self.insert_pad(
                         pos2d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos2d[cam]), pad)
-                    padded3d = self.insert_pad(
-                        pos3d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos3d[cam]), pad)
+                    padded3d = self.insert_pad(pos3d[cam], pad)
 
                     slice_offset = sum([arr.shape[0] for arr in valid_data_array])
 
@@ -102,7 +101,7 @@ class H36MDataset(Dataset):
 
                 for cam in range(cam_num):
                     processed_2d = pos2d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos2d[cam])
-                    processed_3d = pos3d[cam] if self.cfg.preprocessor is None else self.cfg.preprocessor(pos3d[cam])
+                    processed_3d = pos3d[cam]
                     valid_data_array.append(np.concatenate([processed_2d, processed_3d], axis=-1))
 
         valid_data_array = torch.from_numpy(np.concatenate(valid_data_array, axis=0)).float()
