@@ -35,6 +35,6 @@ class MovingAverage():
         # y[self.ws:-self.ws] = [mean_func(x[i - self.ws:i + self.ws + 1], axis=0) for i in range(self.ws, x.shape[0] - self.ws)]
 
         # implemetation using array slicing
-        y[self.ws:-self.ws] = sum_func(stack_func([x[i:-(2 * self.ws + 1) + i] for i in range(2 * self.ws + 1)]), axis=0) / (2 * self.ws + 1)
+        y[self.ws:-self.ws + 1] = sum_func(stack_func([x[i:-(2 * self.ws + 1) + i] for i in range(2 * self.ws + 1)]), axis=0) / (2 * self.ws + 1)
 
         return y
