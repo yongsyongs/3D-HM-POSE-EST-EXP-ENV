@@ -28,13 +28,13 @@ class MovingAverage():
 
         y, mean_func, sum_func, stack_func = (torch.zeros_like(x), wrap_torch_axis(torch.mean, 0), wrap_torch_axis(torch.sum, 0), wrap_torch_axis(torch.stack, 0)) \
             if type(x) == torch.Tensor else (np.zeros_like(x), np.mean, np.sum, np.stack)
-        y[:self.ws] = x[self.ws]
+        y[:self.ws] = x[:self.ws]
         y[-self.ws:] = x[-self.ws:]
 
         # implemetaion using list comprehension
         # y[self.ws:-self.ws] = [mean_func(x[i - self.ws:i + self.ws + 1], axis=0) for i in range(self.ws, x.shape[0] - self.ws)]
 
         # implemetation using array slicing
-        y[self.ws:-self.ws + 1] = sum_func(stack_func([x[i:-(2 * self.ws + 1) + i] for i in range(2 * self.ws + 1)]), axis=0) / (2 * self.ws + 1)
+        y[self.ws:-self.ws] = sum_func(stack_func([x[i:-(2 * self.ws) + i] if i != 2 * self.ws else x[i:] for i in range(2 * self.ws + 1)]), axis=0) / (2 * self.ws + 1)
 
         return y
