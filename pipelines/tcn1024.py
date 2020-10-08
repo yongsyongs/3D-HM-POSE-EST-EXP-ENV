@@ -28,6 +28,8 @@ class pipeline(Pipeline):
         assert x.shape[-1] == 2
 
         pred = self.tcn(x) # (N T J 3)
+        self.last_loss = mpjpe(pred, y)
+        self.last_output = pred
         return pred
 
     def get_loss(self):
