@@ -19,7 +19,7 @@ def train(cfg):
     test_generator = dataset.get_chunked_generator(train=False)
     print('done')
 
-    pipeline = __import__('pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(dataset.num_joints, cfg)
+    pipeline = __import__('pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(cfg)
     optimizer = cfg.optimizer(pipeline.parameters(), lr=cfg.lr, amsgrad=cfg.amsgrad)
 
     if cfg.amp:

@@ -1,26 +1,21 @@
 import torch
 
 from common.pipeline import Pipeline
-from common.nets import temporal_conv, non_local
+from common.nets import temporal_conv
 from common.loss import mpjpe
 
 
 class pipeline(Pipeline):
-    def __init__(self, num_joints, cfg):
+    def __init__(self, cfg):
         super(pipeline, self).__init__()
         rf = cfg.receptive_field
-        fw_cnt = 0
-        while rf != 1:
-            rf /= 3
-            fw_cnt += 1
         self.tcn = temporal_conv.TemporalModel(
-            num_joints_in=num_joints, num_joints_out=num_joints, in_features=2, filter_widths=[3] * fw_cnt
+            num_joints_in=cfg['Pipeline']['num_joints'], num_joints_out=cfg['Pipeline']['num_joints'], in_features=2,
+            **cfg['Pipeline']
         )
-        self.nlb = non_local.NONLocalBlock1D(num_joints * 3)
 
         if cfg.cuda:
             self.tcn.to('cuda')
-            self.nlb.to('cuda')
 
         self.last_loss = 0
         self.last_output = 0
@@ -30,10 +25,6 @@ class pipeline(Pipeline):
         assert x.shape[-1] == 2
 
         pred = self.tcn(x) # (N T J 3)
-        pred = pred.view(pred.shape[:2] + (-1,)).permute(0, 2, 1) # (N C T)
-        pred = self.nlb(pred) #(N C T)
-        pred = pred.permute(0, 2, 1).view(pred.shape[0], pred.shape[2], -1, 3) # (N T J 3)
-
         self.last_loss = mpjpe(pred, y)
         self.last_output = pred
         return pred
