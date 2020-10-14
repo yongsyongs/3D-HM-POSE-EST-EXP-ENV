@@ -22,7 +22,7 @@ optimizer_dict = {
 
 class Config():
     def __init__(
-        self, epochs=0, lr=0, lr_decay=[0], lr_decay_step=[0], amp=False, cuda=False, 
+        self, epochs=0, lr=0, lr_decay=[], lr_decay_step=[], amp=False, cuda=False,
         dataset='', filepath='', train_subjects='', test_subjects='', preprocessor='', 
         preprocessor_parameter=0, keypoint='', chunked=False, normalized=False, 
         batch_size=0, receptive_field=0, padding=False, length=0, yaml=None, pipeline='',
