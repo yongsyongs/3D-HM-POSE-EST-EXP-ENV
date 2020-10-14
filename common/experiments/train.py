@@ -14,12 +14,12 @@ def train(cfg):
         yaml.dump(cfg.yaml, f)
 
     print('Load Dataset...', end='')
-    dataset = cfg.dataset(cfg)
-    train_generator = dataset.get_chunked_generator(train=True) if cfg.chunked else dataset.get_unchunked_generator(train=True, shuffle=True)
-    test_generator = dataset.get_chunked_generator(train=False)
+    dataset = cfg.dataset
+    train_generator = dataset.get_chunked_generator(train=True, cfg=cfg) if cfg.chunked else dataset.get_unchunked_generator(train=True, shuffle=True, cfg=cfg)
+    test_generator = dataset.get_chunked_generator(train=False, cfg=cfg)
     print('done')
 
-    pipeline = __import__('pipelines.' + cfg.pipeline, fromlist=[cfg.pipeline]).pipeline(cfg)
+    pipeline = __import__('pipelines.' + cfg.pipeline['name'], fromlist=[cfg.pipeline['name']]).pipeline(cfg)
     optimizer = cfg.optimizer(pipeline.parameters(), lr=cfg.lr, amsgrad=cfg.amsgrad)
 
     if cfg.amp:

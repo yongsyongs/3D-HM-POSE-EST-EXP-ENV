@@ -3,17 +3,18 @@ Variable:
 
 Pipeline:
   name: tcn
-  num_joints_in: 17
-  num_joints_out: 17
-  in_features: 2
-  channels: 1024
-  filter_widths: [3, 3, 3, 3, 3]
+  tcn_parameters:
+    num_joints_in: 17
+    num_joints_out: 17
+    in_features: 2
+    channels: 1024
+    filter_widths: [3, 3, 3, 3, 3]
 
 Dataset:
   dataset: h36m
   filepath: data/h36m_cpn+detectron+gt_2d_normalized+unnormlized_gt_3d.npy
-  train_subjects: "S1,S5,S6,S7,S8"
-  test_subjects: "S9,S11"
+  train_subjects: "S1" #"S1,S5,S6,S7,S8"
+  test_subjects: "S9" #"S9,S11"
   
   Generator:
     preprocessor: MA
@@ -28,7 +29,7 @@ Dataset:
     length: 10
 
 HyperParameters:
-  epochs: 100
+  epochs: 2
   lr: 0.01
   lr_decay: [0.99, 0.9, 0.8]
   lr_decay_step: [1, 10, 50]

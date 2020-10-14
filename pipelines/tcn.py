@@ -8,11 +8,7 @@ from common.loss import mpjpe
 class pipeline(Pipeline):
     def __init__(self, cfg):
         super(pipeline, self).__init__()
-        rf = cfg.receptive_field
-        self.tcn = temporal_conv.TemporalModel(
-            num_joints_in=cfg['Pipeline']['num_joints'], num_joints_out=cfg['Pipeline']['num_joints'], in_features=2,
-            **cfg['Pipeline']
-        )
+        self.tcn = temporal_conv.TemporalModel(**cfg.pipeline['tcn_parameters'])
 
         if cfg.cuda:
             self.tcn.to('cuda')

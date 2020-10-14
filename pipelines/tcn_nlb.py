@@ -8,8 +8,8 @@ from common.loss import mpjpe
 class pipeline(Pipeline):
     def __init__(self, cfg):
         super(pipeline, self).__init__()
-        self.tcn = temporal_conv.TemporalModel(**cfg['Pipeline']['tcn'])
-        self.nlb = non_local.NONLocalBlock1D(**cfg['Pipeline']['nlb'])
+        self.tcn = temporal_conv.TemporalModel(**cfg.pipeline['tcn_parameters'])
+        self.nlb = non_local.NONLocalBlock1D(**cfg.pipeline['nlb_parameters'])
 
         if cfg.cuda:
             self.tcn.to('cuda')

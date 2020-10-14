@@ -2,10 +2,10 @@ import copy
 import yaml
 
 from common.signal_processing import *
-from common.data.dataset import H36MDataset
+from common.data import h36m_dataset
 
 dataset_dict = {
-    'h36m': H36MDataset,
+    'h36m': h36m_dataset,
     'None': None
 }
 
@@ -67,7 +67,7 @@ class Config():
     def from_yaml(yaml_data):
         args = {
             'yaml': yaml_data,
-            'pipeline': yaml_data['Pipeline'][0],
+            'pipeline': yaml_data['Pipeline'],
             **yaml_data['HyperParameters'],
             **yaml_data['Optimizer'],
             **yaml_data['Process'],
@@ -82,6 +82,10 @@ def get_configs(path='config.yaml'):
     f = open(path)
     raw_cfg = yaml.load(f, Loader=yaml.FullLoader)
     f.close()
+
+    assert not isinstance(raw_cfg['Dataset']['dataset'], list)
+
+    dataset_dict[raw_cfg['Dataset']['dataset']].init(raw_cfg['Dataset']['filepath'])
     var_keys = raw_cfg['Variable']
     cfgs = [raw_cfg]
     for var_key in var_keys:
