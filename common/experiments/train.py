@@ -70,7 +70,7 @@ def train(cfg):
             print('epoch %d    iter %d    loss: %.2f    %.2fsec/iter    lr:%f\t\t\t'
                   % ((epoch + 1), i + 1, train_loss, sum(times) / len(times), lr))
 
-            log_dict['train_loss'] = train_loss
+            log_dict['train_loss'] = train_loss.data
 
             losses = []
             for x_batch, y_batch in test_generator():
@@ -78,7 +78,7 @@ def train(cfg):
                 losses.append(pipeline.get_loss().data)
             test_loss = torch.mean(torch.stack(losses)).data
             print('test result - loss: %.2f' % test_loss)
-            log_dict['test_loss'] = test_loss
+            log_dict['test_loss'] = test_loss.data
 
         logger.log_epoch(log_dict)
         for _lr_decay, _lr_decay_step in zip(cfg.lr_decay, cfg.lr_decay_step):
